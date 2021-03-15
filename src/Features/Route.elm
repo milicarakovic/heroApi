@@ -5,7 +5,9 @@ import Url.Parser exposing (..)
 
 type Route
     = NotFound
-    | Hero
+    | HeroByID
+    | HeroByName
+    | Start
 
 parseUrl : Url -> Route
 parseUrl url =
@@ -19,7 +21,8 @@ parseUrl url =
 matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
-        [ map Hero top
-        , map Hero (s "hero")
+        [ map Start top
+        , map HeroByID (s "heroById")
+        , map HeroByName (s "heroByName")
         ]
 

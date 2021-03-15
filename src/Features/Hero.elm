@@ -1,9 +1,8 @@
 module Features.Hero exposing (..)
 
 import Json.Decode as Decode exposing (Decoder, int, list, string)
-import Json.Decode.Pipeline exposing (optional, optionalAt, required, requiredAt)
+import Json.Decode.Pipeline exposing (optionalAt, required, requiredAt)
 import Json.Encode as Encode
-import Features.Ports exposing (storeHeroes)
 
 type HeroId
     = HeroId Int
@@ -32,13 +31,19 @@ idDecoder : Decoder HeroId
 idDecoder =
     Decode.map HeroId int
 
+heroesDecoder : Decoder (List Hero)
+heroesDecoder =
+    Decode.succeed identity
+        |> required "results" (list heroDecoder)
+
+
 heroDecoder : Decoder Hero
 heroDecoder =
     Decode.succeed Hero    
         |> required "id" string
         |> required "name" string
         |> requiredAt ["biography", "full-name"] string
-        |> requiredAt ["image", "url"] string
+        |> optionalAt ["image", "url"] string "https://bitsofco.de/content/images/2018/12/broken-1.png"
 
 idToString : HeroId -> String
 idToString (HeroId id) =
@@ -56,10 +61,3 @@ heroEncoder hero =
         , ( "fullName", Encode.string hero.fullName )
         , ( "imageUrl", Encode.string hero.imageUrl )
         ]
-
-
--- saveHero : Hero -> Cmd msg
--- saveHero hero =
---     Encode.object heroEncoder hero
---         |> Encode.encode 0
---         |> storeHeroes

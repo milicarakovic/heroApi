@@ -1,14 +1,13 @@
-module Features.CombinedHero exposing (..)
+module Features.HeroById exposing (Model, Msg, init, update, view)
 import Features.Hero exposing (heroDecoder)
 import RemoteData exposing (WebData)
 import Features.Error exposing (buildErrorMessage)
-import Features.Hero as Hero exposing (Hero)
+import Features.Hero exposing (Hero)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Http
 import RemoteData exposing (RemoteData(..))
-import Debug
 
 type alias Model =
     { hero : WebData (Hero)
@@ -24,8 +23,8 @@ initialModel : WebData (Hero) -> Model
 initialModel hero =
     { hero = hero, randomId = "1" }
 
-init : () -> (Model, Cmd Msg)
-init _ = ({hero = Loading, randomId = "1"}, fetchHero "1")
+init : (Model, Cmd Msg)
+init = ({hero = Loading, randomId = "1"}, fetchHero "1")
 
 fetchHero : String ->  Cmd Msg
 fetchHero number =
@@ -42,7 +41,6 @@ update msg model =
     case msg of
         FetchHero ->
             let
-
                 idToSearch =
                     case String.toInt model.randomId of
                         Just number ->
@@ -62,7 +60,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div ([] ++ pageStyle)
-        [ input ([onInput SetNewId ] ++ inputStyle) []
+        [ input ([onInput SetNewId, placeholder "1" ] ++ inputStyle) []
         , button ([ onClick FetchHero ] ++ buttonStyle)
             [ text "Search hero by id" ]
         , br [] []
@@ -117,32 +115,32 @@ viewFetchError errorMessage =
         , text ("Error: " ++ errorMessage)
         ]
 
+
+-- STYLE
+
 leftAndRight : List (Attribute msg)
 leftAndRight =
     [ style "paddingLeft" "10%"
     , style "paddingRight" "10%"
     , style "border" "solid 1px"
     , style "backgroundColor" "#EAFEFE"
+    , style "height" "300px"
     ]
 
 pageStyle : List (Attribute msg)
 pageStyle =
     [ style "margin" "5% 5% 5% 5%"
-    -- , style "backgroundColor" "green"
     ]
 
 leftStyle : List (Attribute msg)
 leftStyle =
     [ style "float" "left"
     , style "marginTop" "5%"
-    -- , style "backgroundColor" "red"
     ]
 
 rightStyle : List (Attribute msg)
 rightStyle =
     [ style "overflow" "hidden"
-    -- , style "backgroundColor" "pink"
-    -- , style "padding" "10px"
     ]
 
 
@@ -151,7 +149,6 @@ divStyle =
     [ style "display" "flex"
     , style "justifyContent" "center"
     , style "columnGap" "20px"
-    -- , style "backgroundColor" "yellow"
     ]
 
 inputStyle : List (Attribute msg)

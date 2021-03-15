@@ -1,8 +1,5 @@
 module Features.Error exposing (..)
-
-
 import Http
-
 
 buildErrorMessage : Http.Error -> String
 buildErrorMessage httpError =
