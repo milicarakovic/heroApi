@@ -7,15 +7,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 
+type Size = Small | Large
+
 type alias Model =
     { heroes : WebData (List Hero)
     , searchString : String
+    , imageSize : Size
     }
 
 type Msg
     = FetchHeroes
     | HeroesReceived (WebData (List Hero))
     | SetSearchString String
+    | ChangeSizeLarge
+    | ChangeSizeSmall
 
 init : WebData (List Hero) -> (Model, Cmd Msg)
 init heroes =
@@ -25,6 +30,7 @@ initialModel : WebData (List Hero) -> Model
 initialModel heroes =
     { heroes = heroes
     , searchString = ""
+    , imageSize = Small
     }
 
 fetchHeroes : String -> Cmd Msg
@@ -47,6 +53,12 @@ update msg model =
         
         HeroesReceived response ->
             ({model | heroes = response}, Cmd.none)
+
+        ChangeSizeLarge ->
+            ({model | imageSize = Large}, Cmd.none)
+        
+        ChangeSizeSmall ->
+            ({model | imageSize = Small}, Cmd.none)
         
 -- VIEW
 view : Model -> Html Msg
@@ -57,11 +69,25 @@ view model =
             [ text "Search hero by name" ]
         , br [] []
         , br [] []
-        , viewHeroes model.heroes
+        , div []
+            [ text "Choose image size: "  
+            , radio (model.imageSize == Small) ChangeSizeSmall "Small"
+            , radio (model.imageSize == Large) ChangeSizeLarge "Large"
+            ]
+        , br [] []
+        , viewHeroes model.imageSize model.heroes
         ]
 
-viewHeroes : WebData (List Hero) -> Html Msg
-viewHeroes heroes =
+radio : Bool-> msg -> String -> Html msg
+radio isChecked msg name =
+    label
+        [ style "padding" "20px" ]
+        [ input [ type_ "radio", onClick msg, checked isChecked] []
+        , text name
+        ]
+
+viewHeroes : Size -> WebData (List Hero) -> Html Msg
+viewHeroes size heroes =
     case heroes of        
         RemoteData.NotAsked ->
             text "Not asked"
@@ -72,7 +98,7 @@ viewHeroes heroes =
         RemoteData.Success actualHeroes ->
             div [] 
                 [ table ([] ++ tableStyle) 
-                    ([viewTableHeader] ++ List.map viewHero actualHeroes)
+                    ([viewTableHeader] ++ List.map (viewHero size) actualHeroes)
                 ]
 
         RemoteData.Failure httpError ->
@@ -102,8 +128,14 @@ viewTableHeader =
             [ text "Image" ]
         ]
 
-viewHero :  Hero -> Html Msg
-viewHero hero =
+viewHero :  Size -> Hero -> Html Msg
+viewHero size hero =
+        let
+            style =
+                case size of
+                   Small -> smallImageStyle
+                   Large -> bigImageStyle
+        in
         tr []
         [ td []
             [ text hero.id ]
@@ -112,7 +144,7 @@ viewHero hero =
         , td []
             [ text hero.fullName ]
         , td []
-           [ img ([src hero.imageUrl] ++ imageStyle) []]
+           [ img ([src hero.imageUrl] ++ style) []]
         ]
 
 -- STYLE
@@ -157,8 +189,14 @@ tableStyle =
     , style "width" "70%"
     ]
 
-imageStyle : List (Attribute msg)
-imageStyle =
+smallImageStyle : List (Attribute msg)
+smallImageStyle =
     [ style "height" "60px"
     , style "width" "60px"
+    ]
+
+bigImageStyle : List (Attribute msg)
+bigImageStyle =
+    [ style "height" "90px"
+    , style "width" "90px"
     ]
